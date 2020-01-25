@@ -1,7 +1,8 @@
 package nl.rdd.snakeyamlkt
 
-import org.snakeyaml.engine.v2.api.Load
-import org.snakeyaml.engine.v2.api.LoadSettings
+import org.snakeyaml.engine.v2.api.Dump
+import org.snakeyaml.engine.v2.api.DumpSettings
+import org.snakeyaml.engine.v2.api.DumpSettingsBuilder
 import org.snakeyaml.engine.v2.api.YamlOutputStreamWriter
 import java.io.IOException
 import java.io.OutputStream
@@ -17,7 +18,7 @@ class YamlOutputStreamWriterThrowing(
 }
 
 
-val DefaultYamlLoader by lazy {
-	val settings = LoadSettings.builder();
-	Load(settings.build())
+@Suppress("FunctionName")
+fun YamlDumper(builder: DumpSettingsBuilder.() -> Unit = {}): Dump {
+	return Dump(DumpSettings.builder().apply(builder).build());
 }
