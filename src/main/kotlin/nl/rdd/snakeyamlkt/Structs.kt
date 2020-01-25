@@ -51,10 +51,7 @@ data class YamlObject(
  */
 abstract class YamlCollection<K> {
 
-	//XXX there's no distinction between "no key" and "key with null value", does this matter?
 	abstract fun get(key: K): YamlObject?;
-
-
 
 	fun getInt(key: K) = get(key)?.value as Int?;
 	fun getLong(key: K) = get(key)?.value as Long?;
@@ -75,16 +72,9 @@ abstract class YamlCollection<K> {
 		}
 	}
 
-
 	inline fun <reified mK> getMap(key: K): YamlMap<mK>? = get(key)?.asMap();
-	inline fun <reified E> getList(key: K): YamlList? = get(key)?.asList();
+	fun getList(key: K): YamlList? = get(key)?.asList();
 
-
-	protected fun throwNSEE(key: K, errorMessage: String?) {
-		//XXX why can't I publicily inline private inline functions?
-		throw NoSuchElementException(errorMessage ?: "No $key definition available");
-	}
-	
 }
 
 
@@ -103,24 +93,22 @@ class YamlMap<K>(
 	fun raw(): Map<K, Any?> = mapValues { it.value.value }
 
 
-	fun requireInt(key: K, errorMessage: String? = null) = getInt(key) ?: throwNSEE(key, errorMessage);
-	fun requireLong(key: K, errorMessage: String? = null) = getLong(key) ?: throwNSEE(key, errorMessage);
-	fun requireByte(key: K, errorMessage: String? = null) = getByte(key) ?: throwNSEE(key, errorMessage);
-	fun requireShort(key: K, errorMessage: String? = null) = getShort(key) ?: throwNSEE(key, errorMessage);
-	fun requireDouble(key: K, errorMessage: String? = null) = getDouble(key) ?: throwNSEE(key, errorMessage);
-	fun requireFloat(key: K, errorMessage: String? = null) = getFloat(key) ?: throwNSEE(key, errorMessage);
-	fun requireString(key: K, errorMessage: String? = null) = getString(key) ?: throwNSEE(key, errorMessage);
-	fun requireChar(key: K, errorMessage: String? = null) = getChar(key) ?: throwNSEE(key, errorMessage);
-	fun requireBoolean(key: K, errorMessage: String? = null) = getBoolean(key) ?: throwNSEE(key, errorMessage)
+	//XXX there's no distinction between "no key" and "key with null value", does this matter?
+	fun require(key: K, errorMessage: String? = null) = get(key) ?: throw NoSuchElementException(errorMessage ?: "No $key definition available");
 
-	inline fun <reified T: Enum<T>> requireEnum(key: K, errorMessage: String? = null) =
-		getEnum<T>(key) ?: throw NoSuchElementException(errorMessage ?: "No $key definition available"); // can't use throwNSEE because of private inlining
+	fun requireInt(key: K, errorMessage: String? = null) = require(key, errorMessage).value as Int;
+	fun requireLong(key: K, errorMessage: String? = null) = require(key, errorMessage).value as Long;
+	fun requireByte(key: K, errorMessage: String? = null) = require(key, errorMessage).value as Byte;
+	fun requireShort(key: K, errorMessage: String? = null) = require(key, errorMessage).value as Short;
+	fun requireDouble(key: K, errorMessage: String? = null) = require(key, errorMessage).value as Double;
+	fun requireFloat(key: K, errorMessage: String? = null) = require(key, errorMessage).value as Float;
+	fun requireString(key: K, errorMessage: String? = null) = require(key, errorMessage).value as String;
+	fun requireChar(key: K, errorMessage: String? = null) = require(key, errorMessage).value as Char;
+	fun requireBoolean(key: K, errorMessage: String? = null) = require(key, errorMessage).value as Boolean
 
-	inline fun <reified mK> requireMap(key: K, errorMessage: String? = null) =
-		getMap<mK>(key) ?: throw NoSuchElementException(errorMessage ?: "No $key definition available"); // can't use throwNSEE because of private inlining
-
-	inline fun <reified E> requireList(key: K, errorMessage: String? = null) =
-		getList<E>(key) ?: throw NoSuchElementException(errorMessage ?: "No $key definition available"); // can't use throwNSEE because of private inlining
+	inline fun <reified T: Enum<T>> requireEnum(key: K, errorMessage: String? = null) = require(key, errorMessage).asEnum<T>();
+	inline fun <reified mK> requireMap(key: K, errorMessage: String? = null) = require(key, errorMessage).asMap<mK>();
+	fun requireList(key: K, errorMessage: String? = null) = require(key, errorMessage).asList();
 
 }
 
