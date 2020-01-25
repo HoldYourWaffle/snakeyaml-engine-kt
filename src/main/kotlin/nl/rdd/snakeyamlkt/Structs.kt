@@ -5,18 +5,34 @@ package nl.rdd.snakeyamlkt
 //	Individual unit-tests are useless because the only "userland" thing is the casting, which is already tested
 
 
-/** A wrapped YAML value with helpers for type-safe list & map casting */
-class YamlObject(
+/** A wrapped YAML value with helpers for type-safe casting */
+data class YamlObject(
 	val value: Any?
 ) {
 
+	/** @see YamlMap */
 	inline fun <reified K> asMap(): YamlMap<K> {
 		return YamlMap((value as Map<*, *>).castMap(valueTransformer = ::YamlObject));
 	}
 
+	/**
+	 * @see asMap
+	 * @see YamlMap.raw
+	 */
+	inline fun <reified K> asRawMap() = asMap<K>().raw();
+
+
+	/** @see YamlList */
 	fun asList(): YamlList {
 		return YamlList((value as List<*>).castList(::YamlObject));
 	}
+
+	/**
+	 * @see asList
+	 * @see YamlList.raw
+	 */
+	fun asRawList() = asList().raw();
+
 
 	inline fun <reified T: Enum<T>> asEnum() = enumValueOf<T>(value as String);
 
@@ -25,7 +41,7 @@ class YamlObject(
 
 /**
  * Base class for collections of [YamlObject]'s.
- * Contains type-safe get & require methods for primitives, enums, lists and maps.
+ * Contains type-safe get methods for primitives, enums, lists and maps.
  *
  * Implementations only need to provide a [get] methods.
  * The type-safe methods cast the result of this method to the desired type.
@@ -60,34 +76,11 @@ abstract class YamlCollection<K> {
 	}
 
 
-	fun requireInt(key: K, errorMessage: String? = null) = getInt(key) ?: throwNSEE(key, errorMessage);
-	fun requireLong(key: K, errorMessage: String? = null) = getLong(key) ?: throwNSEE(key, errorMessage);
-	fun requireByte(key: K, errorMessage: String? = null) = getByte(key) ?: throwNSEE(key, errorMessage);
-	fun requireShort(key: K, errorMessage: String? = null) = getShort(key) ?: throwNSEE(key, errorMessage);
-	fun requireDouble(key: K, errorMessage: String? = null) = getDouble(key) ?: throwNSEE(key, errorMessage);
-	fun requireFloat(key: K, errorMessage: String? = null) = getFloat(key) ?: throwNSEE(key, errorMessage);
-	fun requireString(key: K, errorMessage: String? = null) = getString(key) ?: throwNSEE(key, errorMessage);
-	fun requireChar(key: K, errorMessage: String? = null) = getChar(key) ?: throwNSEE(key, errorMessage);
-	fun requireBoolean(key: K, errorMessage: String? = null) = getBoolean(key) ?: throwNSEE(key, errorMessage)
-
-	inline fun <reified T: Enum<T>> requireEnum(key: K, errorMessage: String? = null) =
-		getEnum<T>(key) ?: throw NoSuchElementException(errorMessage ?: "No $key definition available"); // can't use throwNSEE because of private inlining
-
-
-
 	inline fun <reified mK> getMap(key: K): YamlMap<mK>? = get(key)?.asMap();
 	inline fun <reified E> getList(key: K): YamlList? = get(key)?.asList();
 
 
-	inline fun <reified mK> requireMap(key: K, errorMessage: String? = null) =
-		getMap<mK>(key) ?: throw NoSuchElementException(errorMessage ?: "No $key definition available"); // can't use throwNSEE because of private inlining
-
-	inline fun <reified E> requireList(key: K, errorMessage: String? = null) =
-		getList<E>(key) ?: throw NoSuchElementException(errorMessage ?: "No $key definition available"); // can't use throwNSEE because of private inlining
-
-
-
-	private fun throwNSEE(key: K, errorMessage: String?) {
+	protected fun throwNSEE(key: K, errorMessage: String?) {
 		//XXX why can't I publicily inline private inline functions?
 		throw NoSuchElementException(errorMessage ?: "No $key definition available");
 	}
@@ -101,7 +94,35 @@ abstract class YamlCollection<K> {
  */
 class YamlMap<K>(
 	map: Map<K, YamlObject>
-): Map<K, YamlObject> by map, YamlCollection<K>();
+): Map<K, YamlObject> by map, YamlCollection<K>() {
+
+	/**
+	 * @return A raw map of all objects contained in this YAML-map
+	 * @see castMap
+	 */
+	fun raw(): Map<K, Any?> = mapValues { it.value.value }
+
+
+	fun requireInt(key: K, errorMessage: String? = null) = getInt(key) ?: throwNSEE(key, errorMessage);
+	fun requireLong(key: K, errorMessage: String? = null) = getLong(key) ?: throwNSEE(key, errorMessage);
+	fun requireByte(key: K, errorMessage: String? = null) = getByte(key) ?: throwNSEE(key, errorMessage);
+	fun requireShort(key: K, errorMessage: String? = null) = getShort(key) ?: throwNSEE(key, errorMessage);
+	fun requireDouble(key: K, errorMessage: String? = null) = getDouble(key) ?: throwNSEE(key, errorMessage);
+	fun requireFloat(key: K, errorMessage: String? = null) = getFloat(key) ?: throwNSEE(key, errorMessage);
+	fun requireString(key: K, errorMessage: String? = null) = getString(key) ?: throwNSEE(key, errorMessage);
+	fun requireChar(key: K, errorMessage: String? = null) = getChar(key) ?: throwNSEE(key, errorMessage);
+	fun requireBoolean(key: K, errorMessage: String? = null) = getBoolean(key) ?: throwNSEE(key, errorMessage)
+
+	inline fun <reified T: Enum<T>> requireEnum(key: K, errorMessage: String? = null) =
+		getEnum<T>(key) ?: throw NoSuchElementException(errorMessage ?: "No $key definition available"); // can't use throwNSEE because of private inlining
+
+	inline fun <reified mK> requireMap(key: K, errorMessage: String? = null) =
+		getMap<mK>(key) ?: throw NoSuchElementException(errorMessage ?: "No $key definition available"); // can't use throwNSEE because of private inlining
+
+	inline fun <reified E> requireList(key: K, errorMessage: String? = null) =
+		getList<E>(key) ?: throw NoSuchElementException(errorMessage ?: "No $key definition available"); // can't use throwNSEE because of private inlining
+
+}
 
 
 /**
@@ -111,4 +132,12 @@ class YamlMap<K>(
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES") // it's very unlikely that you're going to call list.get(i) with named arguments
 class YamlList(
 	list: List<YamlObject>
-): List<YamlObject> by list, YamlCollection<Int>();
+): List<YamlObject> by list, YamlCollection<Int>() {
+
+	/**
+	 * @return A raw list of all objects contained in this YAML-list
+	 * @see castList
+	 */
+	fun raw(): List<Any?> = map { it.value }
+
+}
