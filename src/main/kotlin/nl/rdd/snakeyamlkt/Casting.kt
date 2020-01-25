@@ -1,6 +1,3 @@
-@file:Suppress("UNCHECKED_CAST")
-
-
 package nl.rdd.snakeyamlkt
 
 

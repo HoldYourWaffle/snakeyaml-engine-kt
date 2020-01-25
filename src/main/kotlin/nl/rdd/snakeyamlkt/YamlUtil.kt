@@ -8,13 +8,6 @@ import java.io.OutputStream
 import java.nio.charset.Charset
 
 
-/**
- * Alias for a map as returned by snakeyaml-engine.
- * All keys are stringified to ensure type-safety.
- */
-typealias YamlMap = Map<String, Any>;
-
-
 /** Default implementation of [YamlOutputStreamWriter] that throws all encountered [IOException]'s */
 class YamlOutputStreamWriterThrowing(
 	os: OutputStream,
