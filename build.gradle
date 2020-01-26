@@ -23,3 +23,12 @@ test {
 		events 'passed', 'skipped', 'failed'
 	}
 }
+
+
+compileKotlin {
+	kotlinOptions.jvmTarget = "1.8"
+}
+
+compileTestKotlin {
+	kotlinOptions.jvmTarget = "1.8"
+}

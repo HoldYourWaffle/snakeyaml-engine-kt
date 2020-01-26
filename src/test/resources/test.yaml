@@ -1,0 +1,12 @@
+--- # Map<String, Int>
+a: 1
+
+--- # Map<Int, String>
+1: a
+
+--- # List<String>
+- a
+
+--- # List<Int>
+- 1
+

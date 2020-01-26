@@ -7,8 +7,9 @@ package nl.rdd.snakeyamlkt
  * @return A safely casted Map<nK, nV>
  */
 inline fun <K, V, reified nK, reified nV> Map<K, V>.castMap(
-	keyTransformer: (K) -> nK = { it as nK },
-	valueTransformer: (V) -> nV = { it as nV }
+	//FIXME noinline because of weird reified bug(?)
+	noinline keyTransformer: (K) -> nK = { it as nK },
+	noinline valueTransformer: (V) -> nV = { it as nV }
 ): Map<nK, nV> {
 	val casted = mutableMapOf<nK, nV>();
 	for (e in this) {

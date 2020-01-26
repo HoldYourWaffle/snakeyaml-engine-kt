@@ -51,7 +51,7 @@ data class YamlObject(
  */
 abstract class YamlCollection<K> {
 
-	abstract fun get(key: K): YamlObject?;
+	abstract operator fun get(key: K): YamlObject?;
 
 	fun getInt(key: K) = get(key)?.value as Int?;
 	fun getLong(key: K) = get(key)?.value as Long?;

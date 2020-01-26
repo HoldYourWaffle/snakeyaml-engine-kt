@@ -114,8 +114,9 @@ class TestCasting {
 	/** @return if the cast was successful */
 	private inline fun <reified K, reified V> testMap(
 		map: Map<Any?, Any?>,
-		keyTransformer: (Any?) -> K = { it as K },
-		valueTransformer: (Any?) -> V = { it as V }
+		//FIXME noinline because of weird reified bug(?)
+		noinline keyTransformer: (Any?) -> K = { it as K },
+		noinline valueTransformer: (Any?) -> V = { it as V }
 	): Boolean {
 		return try {
 			map.castMap(keyTransformer, valueTransformer);
